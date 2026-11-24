@@ -100,6 +100,7 @@ We used AI throughout and say so plainly, because the rules require it and becau
 **Inside the product.**
 - **Gemini's jobs:** it reads resident flood photos (water present, depth range, reference object), writes plain-language guidance and remedies from our numbers, turns an "Ask Pelican" request into a destination type, and searches the web for food distributions (Google Search grounding), listing only what it found with the source of each.
 - **Guards:** every Gemini answer is checked so it cannot add numbers we did not give it. With Gemini off, the app falls back to fixed text and still works: the grade, map, storm timeline and routing never need it. When the food search is unavailable (it was over its quota during judging day), the panel says so and points to 211; it never shows made-up events.
+- **Off by default since the event:** the public site now runs with Gemini switched off so it costs nothing to host. Where a Gemini feature would be, the interface says it is paused. Anyone hosting their own copy turns it on with `AI_PROVIDER=gemini` and a key (see `.env.example`).
 - **Not Gemini:** the weather brief, the buying, renting or building checklist and the guided demos are written from fixed rules and our own numbers, with no language model.
 
 ## Tradeoffs we chose

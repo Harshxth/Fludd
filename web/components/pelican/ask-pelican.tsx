@@ -8,6 +8,8 @@ import { STORM_WORDS } from "@/components/ui/storm-words";
 import { useId, useRef, useState } from "react";
 import type { CSSProperties, FormEvent } from "react";
 import { aboutTime } from "@/components/stages/shared";
+import { Paused } from "@/components/ui/paused";
+import { AI_ON } from "@/lib/config";
 import { bestRoute } from "@/lib/routing";
 import { OpenInMaps } from "./open-in-maps";
 import type { LngLat, PumpState, Scenario } from "@/lib/types";
@@ -251,6 +253,11 @@ export function AskPelican({
           </button>
         ))}
       </div>
+      {!AI_ON && (
+        <Paused what="Understanding longer questions" className="px-3">
+          Short requests such as &ldquo;pharmacy&rdquo; or a street address still work.
+        </Paused>
+      )}
     </section>
   );
 }

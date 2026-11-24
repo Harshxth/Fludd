@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Paused } from "@/components/ui/paused";
 import { Group } from "@/components/ui/surface";
+import { AI_ON } from "@/lib/config";
 import { CHECKED_ON, FOOD_SITES } from "./food-sites";
 import type { LngLat } from "@/lib/types";
 
@@ -119,7 +121,7 @@ export function HelpPanel({ position }: { position: LngLat }) {
       </p>
 
       <FoodSites position={position} />
-      <FoodCampaigns />
+      {AI_ON ? <FoodCampaigns /> : <Paused what="The live search for this week's food distributions" className="px-5 pt-2" />}
 
       <Group title="Call for help">
         <a href="tel:911" className="pressable flex min-h-14 items-center justify-between gap-3 border-b border-separator px-4 py-2.5">

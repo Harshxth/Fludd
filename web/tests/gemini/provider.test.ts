@@ -19,6 +19,12 @@ describe("getProvider", () => {
     expect(getProvider()).toBeNull();
   });
 
+  it("is off by default, even with a key", () => {
+    vi.stubEnv("AI_PROVIDER", undefined);
+    vi.stubEnv("GEMINI_API_KEY", "test-key");
+    expect(getProvider()).toBeNull();
+  });
+
   it("is off for an unknown provider name", () => {
     vi.stubEnv("AI_PROVIDER", "other");
     vi.stubEnv("GEMINI_API_KEY", "test-key");

@@ -2,7 +2,9 @@
 
 import { useEffect, useId, useState, type CSSProperties } from "react";
 import { recordContribution } from "@/components/rewards/contributions";
+import { Paused } from "@/components/ui/paused";
 import { Group } from "@/components/ui/surface";
+import { AI_ON } from "@/lib/config";
 import type { ApiError, QueueItem } from "@/lib/types";
 import { percent, rangeWords } from "./depth-words";
 
@@ -219,8 +221,9 @@ function Done({ aiReading }: { aiReading: AiReading | null }) {
           </div>
         </Group>
       )}
+      {!aiReading && !AI_ON && <Paused what="Automatic photo reading" className="px-7 pt-1.5" />}
       <p className="rise-in px-7 pt-1.5 text-footnote text-label-2" style={{ "--i": 4 } as CSSProperties}>
-        This reading is an estimate from one photo. Do not drive or walk through flood water at any depth.
+        {aiReading ? "This reading is an estimate from one photo. " : ""}Do not drive or walk through flood water at any depth.
       </p>
     </div>
   );

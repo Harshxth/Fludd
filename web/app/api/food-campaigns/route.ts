@@ -18,7 +18,7 @@ export async function GET() {
   const cfg = serverConfig();
   // Search grounding has its own, smaller quota: prefer the second key when one is set (added in Vercel as "Gemini_api_key_2").
   const apiKey = process.env.Gemini_api_key_2 || process.env.GEMINI_API_KEY_2 || cfg.geminiApiKey;
-  if (!apiKey) return apiError(503, "not_configured", "The search agent is not set up on this server");
+  if (cfg.aiProvider !== "gemini" || !apiKey) return apiError(503, "not_configured", "The search agent is not set up on this server");
   const ai = new GoogleGenAI({ apiKey });
   const ask = async (prompt: string): Promise<SearchAnswer> => {
     let last: unknown = null;

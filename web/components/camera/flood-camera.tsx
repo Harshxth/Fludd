@@ -4,6 +4,8 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { saveProfile } from "@/components/onboarding/profile";
 import { rangeWords } from "@/components/report/depth-words";
 import { recordContribution } from "@/components/rewards/contributions";
+import { Paused } from "@/components/ui/paused";
+import { AI_ON } from "@/lib/config";
 import type { LngLat, QueueItem } from "@/lib/types";
 
 type AiReading = QueueItem["aiReading"];
@@ -137,14 +139,15 @@ export function FloodCamera({ home }: { home: LngLat | null }) {
     <div className="px-4 py-4">
       <p className="text-headline font-semibold">Turn a spare phone into a flood camera</p>
       <p className="mt-1 text-subhead text-label-2">
-        Prop an old phone in a window facing the street and open this screen on it. Fludd takes one photo when you ask, or once an hour, and reads how deep the water is.
+        Prop an old phone in a window facing the street and open this screen on it. Fludd takes one photo when you ask, or once an hour{AI_ON ? ", and reads how deep the water is" : ", and sends it to a reviewer"}.
       </p>
+      {!AI_ON && <Paused what="Automatic depth reading" className="mt-1" />}
 
       <div className={`relative mt-3 overflow-hidden rounded-[var(--radius-control)] bg-fill ${on ? "swap-in" : "hidden"}`}>
         <video ref={video} muted playsInline className="block aspect-video w-full object-cover" aria-label="Live view from this phone's camera" />
         {phase.kind === "checking" && (
           <p className="rise-in absolute inset-x-0 bottom-0 bg-black/55 px-3 py-2 text-footnote text-white">
-            Reading the water…
+            {AI_ON ? "Reading the water…" : "Sending the photo…"}
             <span className="typing ml-2 align-middle" aria-hidden="true">
               <i />
               <i />
