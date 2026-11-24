@@ -119,7 +119,7 @@ export function AddressSearch({ onPick, floating = false }: { onPick: (match: Ad
       )}
       {nothing && (
         <p role="status" className="rise-in mt-2 rounded-[var(--radius-group)] bg-group px-3.5 py-3 text-subhead text-label-2">
-          Nothing called &ldquo;{text.trim()}&rdquo; near USF. Try its street address.
+          Nothing called &ldquo;{text.trim()}&rdquo; in the area Fludd covers. Try its street address.
         </p>
       )}
     </form>

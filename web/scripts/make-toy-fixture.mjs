@@ -146,4 +146,6 @@ write("manifest.json", {
   units: "m",
   sources: [{ name: "Synthetic toy fixture", url: "web/scripts/make-toy-fixture.mjs", date: "2026-11-21" }],
 });
+// The region index (docs/regions.md): the toy data is one tile at the data root.
+write("regions.json", { areas: [{ id: "toy", name: "Toy town", tiles: [{ id: "toy", name: "Toy fixture", bbox, path: "" }] }] });
 console.log(`toy fixture written to ${out}`);

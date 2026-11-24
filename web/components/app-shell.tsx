@@ -13,6 +13,7 @@ import { AskPelican } from "@/components/pelican/ask-pelican";
 import { recordContribution } from "@/components/rewards/contributions";
 import { RewardsPanel } from "@/components/rewards/rewards-panel";
 import { AddressSearch } from "@/components/report-card/address-search";
+import { notCoveredText, useCoveredPlaces } from "@/components/report-card/not-covered";
 import { ValidationPanel } from "@/components/report-card/validation-panel";
 import { AfterPanel } from "@/components/stages/after-panel";
 import { BeforePanel } from "@/components/stages/before-panel";
@@ -68,6 +69,7 @@ const TITLES: Record<Tab, string> = { home: "Home", live: "Live", ask: "Ask Peli
 type Graded = { place: Place; grade: GradeResult };
 
 export function AppShell() {
+  const covered = useCoveredPlaces();
   const profile = useProfile();
   const [tab, setTab] = useState<Tab>("home");
   const [stage, setStage] = useState<Stage>("before");
@@ -234,9 +236,9 @@ export function AppShell() {
       {current?.grade.kind === "outside" && (
         <Group>
           <div className="px-4 py-4">
-            <p className="text-headline font-semibold">Outside the area we cover</p>
+            <p className="text-headline font-semibold">Not covered yet</p>
             <p className="mt-1 text-subhead text-label-2">
-              {current.place.label} is outside the area around USF that the model covers, so it gets no grade.
+              {notCoveredText(current.place.label, covered)}
             </p>
           </div>
         </Group>

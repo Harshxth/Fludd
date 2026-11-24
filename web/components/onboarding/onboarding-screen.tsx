@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { StepIllustration } from "@/components/illustrations";
 import { AddressSearch } from "@/components/report-card/address-search";
+import { notCoveredText, useCoveredPlaces } from "@/components/report-card/not-covered";
 import { TourButton } from "./tour-button";
 import { LogoMark, WORDMARK_CLASS } from "@/components/ui/logo";
 import { motion, useReducedMotion } from "motion/react";
@@ -89,6 +90,7 @@ const FLOOD_WORDS: Record<FloodCover, string> = {
 /** Full-screen first-run flow. One question per screen, every screen skippable, everything stays on this device. */
 export function OnboardingScreen({ onFinish }: { onFinish: () => void }) {
   const p = useProfile() ?? EMPTY_PROFILE;
+  const covered = useCoveredPlaces();
   const [current, setCurrent] = useState<ScreenId>("welcome");
   const [history, setHistory] = useState<ScreenId[]>([]);
   const [dir, setDir] = useState<"forward" | "back">("forward");
@@ -288,7 +290,7 @@ export function OnboardingScreen({ onFinish }: { onFinish: () => void }) {
               <AddressSearch
                 onPick={(match, err) => {
                   if (err || !match) return setError(err ?? "We couldn't find that address. Try the street number and name.");
-                  if (!match.inside) return setError(`${match.label.split(",")[0]} is outside the area around USF we cover. Try an address closer to campus.`);
+                  if (!match.inside) return setError(notCoveredText(match.label, covered));
                   next(save({ home: { label: match.label, position: match.position } }));
                 }}
               />

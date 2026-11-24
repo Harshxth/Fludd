@@ -36,6 +36,10 @@ Agreed with Hansika 12:05, updated 12:20.
 
 New map layers `storm-pipes` (LineStrings; `kind` pipe | culvert | channel, `diameterIn`, `heightIn`, `material`, `shape`, `owner`) and `outfalls` (points). Agreed by Harshith as lead while Hansika was out of usage; added to `LAYER_NAMES` and the toy fixture. 4,604 lines and 943 outfalls on real data.
 
+## Contract change (2026-11-23, after the event)
+
+Region index, approved by Harshith; design in `docs/regions.md`. New file `regions.json` at the data root (and in the toy fixture): areas, their tiles, each tile's `bbox` and `path`. Code in `web/lib/regions`. `AddressMatch.inside` now means "inside some tile of the index" instead of "inside the one manifest box"; with one tile the answer is the same. No other name or shape changed.
+
 ## Stub status (14:20)
 
 Everything in "Exact names" is real. Routing runs on the real OSM road graph (6,481 junctions, 9,064 segments). `findBetterOptions` works on real data only and throws on the toy set. `/api/weather` proxies NWS active alerts; `/api/health` returns the manifest version (both finished by Harshith's session at 14:15 while Hansika was out of usage).

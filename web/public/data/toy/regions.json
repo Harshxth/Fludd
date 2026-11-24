@@ -1,0 +1,21 @@
+{
+ "areas": [
+  {
+   "id": "toy",
+   "name": "Toy town",
+   "tiles": [
+    {
+     "id": "toy",
+     "name": "Toy fixture",
+     "bbox": [
+      -82.42,
+      28.055,
+      -82.408,
+      28.064
+     ],
+     "path": ""
+    }
+   ]
+  }
+ ]
+}

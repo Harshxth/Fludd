@@ -2,8 +2,8 @@
 // Named places (apartment communities, neighbourhoods, shops) come from ArcGIS World, which the county locator
 // does not know; added by Harshith's session at Harshith's request (2026-11-21 15:00).
 // See prep/03-drainage-roads-live-data.md section E1. Names and types as in docs/contracts.md.
-import { loadGold } from "@/lib/data";
-import type { AddressMatch, AddressSuggestion, LngLat, Manifest } from "@/lib/types";
+import { findTile, loadRegions } from "@/lib/regions";
+import type { AddressMatch, AddressSuggestion, LngLat } from "@/lib/types";
 
 const LOCATOR =
   "https://maps.hillsboroughcounty.org/arcgis/rest/services/Geocoding/Composite_Address_Locator_Overall/GeocodeServer";
@@ -79,11 +79,6 @@ export async function suggestAddresses(text: string): Promise<AddressSuggestion[
   return [...first, ...places].slice(0, MAX_SUGGESTIONS);
 }
 
-function insideBox(manifest: Manifest, [lng, lat]: LngLat): boolean {
-  const [west, south, east, north] = manifest.bbox;
-  return lng >= west && lng <= east && lat >= south && lat <= north;
-}
-
 export async function resolveAddress(suggestionId: string): Promise<AddressMatch | null> {
   const world = suggestionId.startsWith(WORLD_PREFIX);
   const id = world ? suggestionId.slice(WORLD_PREFIX.length) : suggestionId;
@@ -96,11 +91,11 @@ export async function resolveAddress(suggestionId: string): Promise<AddressMatch
   url.searchParams.set("outSR", "4326");
   url.searchParams.set("maxLocations", "5");
   url.searchParams.set("f", "json");
-  const [body, gold] = await Promise.all([callLocator<CandidatesResponse>("address lookup", url), loadGold()]);
+  const [body, regions] = await Promise.all([callLocator<CandidatesResponse>("address lookup", url), loadRegions()]);
   const best = (body.candidates ?? []).reduce<Candidate | null>((top, c) => (top === null || c.score > top.score ? c : top), null);
   if (!best) return null;
   const position: LngLat = [best.location.x, best.location.y];
-  return { label: best.address, position, inside: insideBox(gold.manifest, position) };
+  return { label: best.address, position, inside: findTile(regions, position) !== null };
 }
 
 /** The street address at a point (a building tapped on the map), from ArcGIS World. null when there is none. */

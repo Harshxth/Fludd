@@ -1,0 +1,11 @@
+{
+  "areas": [
+    {
+      "id": "tampa",
+      "name": "Tampa",
+      "tiles": [
+        { "id": "usf", "name": "USF and the University Area", "bbox": [-82.4467, 28.0297, -82.3811, 28.0877], "path": "" }
+      ]
+    }
+  ]
+}
