@@ -152,3 +152,20 @@ describe("reverseGeocode", () => {
     expect(await reverseGeocode([-82.4, 28.0])).toBeNull();
   });
 });
+
+describe("a locator that never answers", () => {
+  it("gives up with an error the person can act on, instead of waiting for ever", async () => {
+    vi.useFakeTimers();
+    try {
+      vi.stubGlobal("fetch", (_url: string, init?: RequestInit) =>
+        new Promise((_, reject) => init?.signal?.addEventListener("abort", () => reject(new DOMException("timed out", "TimeoutError")))),
+      );
+      const lookup = reverseGeocode([-82.41, 28.06]);
+      const caught = expect(lookup).rejects.toThrow(/did not answer/);
+      await vi.advanceTimersByTimeAsync(10_000);
+      await caught;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

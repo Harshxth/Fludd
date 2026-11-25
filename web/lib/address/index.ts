@@ -37,8 +37,21 @@ interface CandidatesResponse {
   error?: { message?: string };
 }
 
+/** A locator that has not answered by now is treated as down, so a search never hangs without a word. */
+const LOCATOR_TIMEOUT_MS = 8000;
+
 async function callLocator<T extends { error?: { message?: string } }>(what: string, url: URL): Promise<T> {
-  const res = await fetch(url.toString());
+  const abort = new AbortController();
+  const timer = setTimeout(() => abort.abort(), LOCATOR_TIMEOUT_MS);
+  let res: Response;
+  try {
+    res = await fetch(url.toString(), { signal: abort.signal });
+  } catch (e) {
+    if (abort.signal.aborted) throw new Error(`The ${what} service did not answer. Try again in a moment.`);
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
   if (!res.ok) throw new Error(`County ${what} failed (HTTP ${res.status})`);
   const body = (await res.json()) as T;
   if (body.error) throw new Error(`County ${what} failed: ${body.error.message ?? "unknown error"}`);
