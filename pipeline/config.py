@@ -1,17 +1,53 @@
-"""Every pipeline setting lives here: study box, storm sizes, vehicle limits, file paths.
+"""Every pipeline setting lives here: areas and their boxes, storm sizes, vehicle limits, file paths.
 
 No other pipeline file hard-codes a setting; they import it from this module.
 """
 
+import math
+import os
+from dataclasses import dataclass
 from pathlib import Path
 
-# Study box around USF, WGS84 (xmin, ymin, xmax, ymax). 4 x 4 miles.
-# Source: prep/02-flood-and-elevation-data.md, section "Study area".
-STUDY_BOX_WGS84: tuple[float, float, float, float] = (-82.4467, 28.0297, -82.3811, 28.0877)
+Box = tuple[float, float, float, float]
+
+
+@dataclass(frozen=True)
+class Area:
+    """One metro, modelled in a single run and then cut into tiles (docs/regions.md)."""
+
+    name: str
+    box: Box  # WGS84 (xmin, ymin, xmax, ymax)
+    elevation_size: tuple[int, int] | None = None  # pixels asked of USGS; None: about CELL_M cells, from the box
+    in_repo: bool = False  # True: one tile written straight into web/public/data, kept in git
+
+
+AREAS: dict[str, Area] = {
+    # 4 x 4 miles around USF. Source: prep/02-flood-and-elevation-data.md, "Study area"; pixel size from B2.
+    "usf": Area("USF and the University Area", (-82.4467, 28.0297, -82.3811, 28.0877), (2146, 2125), in_repo=True),
+    # City of Tampa, about 12 x 12 miles. Holds the USF box.
+    "tampa": Area("Tampa", (-82.56, 27.92, -82.36, 28.10)),
+}
+# Which area this run is for. Every folder and the study box below follow from it.
+AREA = os.environ.get("FLUDD_AREA", "usf")
+STUDY_BOX_WGS84: Box = AREAS[AREA].box
+
+CELL_M = 3.0  # ground cell asked for when an area gives no pixel size (native 3DEP lidar is about 3 m)
+
+
+def elevation_size(area: Area) -> tuple[int, int]:
+    """Width and height in pixels of the elevation image for an area."""
+    if area.elevation_size:
+        return area.elevation_size
+    west, south, east, north = area.box
+    width_m = (east - west) * 111_320 * math.cos(math.radians((south + north) / 2))
+    return round(width_m / CELL_M), round((north - south) * 110_574 / CELL_M)
+
 
 # Working projection: UTM zone 17N, so grid cells are in metres.
 WORK_CRS = "EPSG:26917"
 
+# ponytail: one set of storm numbers (taken at USF) for every area. NOAA Atlas 14 differs by a few
+# percent across Tampa; give each area its own tables before running one outside Hillsborough.
 # 24-hour rainfall totals at USF in inches, NOAA Atlas 14.
 # Source: prep/PLAN.md section 6. Confirm the duration mapping on NOAA's page before quoting.
 STORM_TOTALS_IN: dict[str, float] = {
@@ -84,7 +120,10 @@ WET_THRESHOLD_M = 0.15
 # Paths. Raw downloads (bronze) and intermediate files (silver) stay out of git.
 PIPELINE_DIR = Path(__file__).resolve().parent
 REPO_DIR = PIPELINE_DIR.parent
-BRONZE_DIR = PIPELINE_DIR / "data" / "bronze"
-SILVER_DIR = PIPELINE_DIR / "data" / "silver"
-QUARANTINE_DIR = PIPELINE_DIR / "data" / "quarantine"
-GOLD_DIR = REPO_DIR / "web" / "public" / "data"
+DATA_DIR = PIPELINE_DIR / "data" / AREA
+BRONZE_DIR = DATA_DIR / "bronze"
+SILVER_DIR = DATA_DIR / "silver"
+QUARANTINE_DIR = DATA_DIR / "quarantine"
+# The data root the app reads. Areas that are not kept in the repo are staged under pipeline/data/gold,
+# laid out as they will sit in the data store: regions.json, then <area>/<tile>/.
+GOLD_DIR = REPO_DIR / "web" / "public" / "data" if AREAS[AREA].in_repo else PIPELINE_DIR / "data" / "gold"

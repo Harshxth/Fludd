@@ -124,13 +124,13 @@ npm ci
 npm run dev                     # http://localhost:3000
 ```
 
-Set `NEXT_PUBLIC_DATA_SET=real` to use the real data in `web/public/data/` (the default is the small toy fixture). The pipeline: `cd pipeline && uv run python run.py`.
+Set `NEXT_PUBLIC_DATA_SET=real` to use the real data in `web/public/data/` (the default is the small toy fixture). The pipeline: `cd pipeline && uv run python run.py`. It runs the USF area unless `FLUDD_AREA` names another one from `pipeline/config.py` (see `docs/regions.md`).
 
 ## Tests
 
 ```bash
 cd web && npm run lint && npm run typecheck && npm test     # 450+ tests
-cd pipeline && uv run pytest -q                              # 70 tests
+cd pipeline && uv run pytest -q                              # 84 tests
 ```
 
 CI runs lint, typecheck, both test suites and a secret scan on every push.

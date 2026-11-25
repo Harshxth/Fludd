@@ -37,3 +37,37 @@ def test_record_writes_manifest_entry(tmp_path: Path, monkeypatch: pytest.Monkey
     assert entry["count"] == 3
     assert entry["bytes"] == 3
     assert entry["file"] == "x.geojson"
+
+
+def test_a_batch_the_server_fails_on_is_asked_again_in_halves(monkeypatch: pytest.MonkeyPatch) -> None:
+    """FEMA's flood zone service returns an error when one answer holds too many large shapes."""
+    asked: list[int] = []
+
+    class Answer:
+        def __init__(self, ids: list[str]) -> None:
+            self.ids = ids
+
+        def json(self) -> dict[str, object]:
+            return {"features": [{"id": int(i)} for i in self.ids]}
+
+    def fake(url: str, params: object = None, data: dict[str, str] | None = None, **kwargs: object) -> Answer:
+        assert data is not None
+        ids = data["where"].split("(")[1].rstrip(")").split(",")
+        asked.append(len(ids))
+        if len(ids) > 2:
+            raise RuntimeError("Failed after 5 attempts")
+        return Answer(ids)
+
+    monkeypatch.setattr(fetch, "get_with_retry", fake)
+    features = fetch.features_of("https://example.invalid/0/query", "OBJECTID", list(range(8)), "*")
+    assert [f["id"] for f in features] == list(range(8))
+    assert asked == [8, 4, 2, 2, 4, 2, 2]
+
+
+def test_a_single_feature_the_server_fails_on_stops_the_download(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail(*args: object, **kwargs: object) -> None:
+        raise RuntimeError("Failed after 5 attempts")
+
+    monkeypatch.setattr(fetch, "get_with_retry", fail)
+    with pytest.raises(RuntimeError, match="Failed after"):
+        fetch.features_of("https://example.invalid/0/query", "OBJECTID", [7], "*")

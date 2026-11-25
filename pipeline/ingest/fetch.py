@@ -3,7 +3,7 @@
 - `get_with_retry`: HTTP GET/POST with exponential backoff (public GIS hosts drop connections).
 - `fetch_arcgis_layer`: all features of one ArcGIS layer inside the study box, as GeoJSON.
   Asks for the object ids first, then fetches them in chunks, so it works on services
-  that do not support paging.
+  that do not support paging. A chunk the server fails on is split in half and asked again.
 - `record`: appends one entry to the bronze manifest (source, URL, filter, count, time).
 
 Files already downloaded are never fetched again; delete the file to re-fetch.
@@ -72,6 +72,32 @@ def _arcgis_json(response: requests.Response) -> dict[str, Any]:
     return body
 
 
+def features_of(query_url: str, id_field: str, batch: Sequence[int], out_fields: str) -> list[dict[str, Any]]:
+    """The features with these ids. A batch the server fails on is asked again in halves: FEMA's
+    flood zone service returns an error when one answer holds too many large shapes."""
+    try:
+        body = _arcgis_json(
+            get_with_retry(
+                query_url,
+                # `where id IN (...)` rather than `objectIds=`: the county parcel service rejects the latter.
+                data={
+                    "where": f"{id_field} IN ({','.join(str(i) for i in batch)})",
+                    "outFields": out_fields,
+                    "outSR": "4326",
+                    "f": "geojson",
+                },
+            )
+        )
+    except RuntimeError:
+        if len(batch) == 1:
+            raise
+        half = len(batch) // 2
+        print(f"   {len(batch)} features failed together, asking for each half")
+        return features_of(query_url, id_field, batch[:half], out_fields) + features_of(query_url, id_field, batch[half:], out_fields)
+    features: list[dict[str, Any]] = body.get("features", [])
+    return features
+
+
 def fetch_arcgis_layer(
     name: str,
     layer_url: str,
@@ -94,19 +120,7 @@ def fetch_arcgis_layer(
 
     features: list[dict[str, Any]] = []
     for batch in chunks(ids, CHUNK):
-        body = _arcgis_json(
-            get_with_retry(
-                query_url,
-                # `where id IN (...)` rather than `objectIds=`: the county parcel service rejects the latter.
-                data={
-                    "where": f"{id_field} IN ({','.join(str(i) for i in batch)})",
-                    "outFields": out_fields,
-                    "outSR": "4326",
-                    "f": "geojson",
-                },
-            )
-        )
-        features.extend(body.get("features", []))
+        features.extend(features_of(query_url, id_field, batch, out_fields))
 
     if len(features) != len(ids):
         raise RuntimeError(f"{name}: asked for {len(ids)} features, got {len(features)}")

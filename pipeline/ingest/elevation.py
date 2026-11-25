@@ -13,8 +13,7 @@ import config
 from ingest.fetch import get_with_retry, record
 
 URL = "https://elevation.nationalmap.gov/arcgis/rest/services/3DEPElevation/ImageServer/exportImage"
-# Native ~3 m over the 4 x 4 mile box (research file 02, B2).
-SIZE = (2146, 2125)
+MAX_PIXELS = 8000  # the service's maxImageWidth and maxImageHeight
 NODATA = -9999.0
 
 
@@ -24,11 +23,14 @@ def download() -> None:
         print("== elevation: already downloaded, skipping")
     else:
         xmin, ymin, xmax, ymax = config.STUDY_BOX_WGS84
+        width, height = config.elevation_size(config.AREAS[config.AREA])
+        if max(width, height) > MAX_PIXELS:
+            raise RuntimeError(f"elevation: {width} x {height} px is more than one request returns ({MAX_PIXELS}); make the area smaller")
         params = {
             "bbox": f"{xmin},{ymin},{xmax},{ymax}",
             "bboxSR": "4326",
             "imageSR": "26917",
-            "size": f"{SIZE[0]},{SIZE[1]}",
+            "size": f"{width},{height}",
             "format": "tiff",
             "pixelType": "F32",
             "noData": str(NODATA),
