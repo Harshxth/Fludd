@@ -16,7 +16,8 @@ describe("GET /api/weather", () => {
     const fetchMock = vi.fn(async () =>
       Response.json({
         features: [
-          { properties: { event: "Flood Watch", headline: "Flood Watch until 8 PM", severity: "Moderate", ends: null } },
+          { properties: { event: "Flood Watch", headline: "Flood Watch until 8 PM", severity: "Moderate", ends: null, expires: "2026-11-24T20:00:00-05:00" } },
+          { properties: { event: "Coastal Flood Statement", headline: "Statement", severity: "Minor", ends: "2026-11-26T07:00:00-05:00" } },
           { properties: { event: "", headline: "dropped: no event" } },
         ],
       }),
@@ -24,7 +25,13 @@ describe("GET /api/weather", () => {
     vi.stubGlobal("fetch", fetchMock);
     const res = await weather(req("?lat=28.058712&lng=-82.413912"));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ alerts: [{ event: "Flood Watch", headline: "Flood Watch until 8 PM", severity: "Moderate" }] });
+    expect(await res.json()).toEqual({
+      alerts: [
+        // `ends` is when the hazard ends; NWS leaves it empty for some alerts, and then the alert's expiry stands in.
+        { event: "Flood Watch", headline: "Flood Watch until 8 PM", severity: "Moderate", ends: "2026-11-24T20:00:00-05:00" },
+        { event: "Coastal Flood Statement", headline: "Statement", severity: "Minor", ends: "2026-11-26T07:00:00-05:00" },
+      ],
+    });
     const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
     expect(url).toBe("https://api.weather.gov/alerts/active?point=28.0587,-82.4139");
     expect(new Headers(init.headers).get("user-agent")).toBeTruthy();

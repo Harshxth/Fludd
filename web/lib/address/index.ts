@@ -18,8 +18,8 @@ const SEP = "|";
 const WORLD = "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer";
 /** World suggestion ids start with this, so resolveAddress knows which locator to ask. */
 const WORLD_PREFIX = "w:";
-/** Keep place results to the Tampa area, biased to USF. */
-const TAMPA_EXTENT = "-82.65,27.85,-82.25,28.2";
+/** Places anywhere in Florida, biased to USF. Outside the tiles they get the storm screen, not a grade. */
+const FLORIDA_EXTENT = "-87.7,24.4,-79.9,31.1";
 const USF: LngLat = [-82.4139, 28.0587];
 const MAX_SUGGESTIONS = 6;
 
@@ -64,7 +64,7 @@ export async function suggestAddresses(text: string): Promise<AddressSuggestion[
     suggestFrom(LOCATOR, "", q, {}),
     suggestFrom(WORLD, WORLD_PREFIX, q, {
       location: USF.join(","),
-      searchExtent: TAMPA_EXTENT,
+      searchExtent: FLORIDA_EXTENT,
       countryCode: "USA",
       maxSuggestions: String(MAX_SUGGESTIONS),
     }),

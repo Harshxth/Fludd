@@ -4,7 +4,7 @@ import { apiError } from "@/lib/api";
 import { serverConfig } from "@/lib/config";
 
 interface NwsAlerts {
-  features?: { properties?: { event?: string; headline?: string | null; severity?: string } }[];
+  features?: { properties?: { event?: string; headline?: string | null; severity?: string; ends?: string | null; expires?: string | null } }[];
 }
 
 export async function GET(request: Request) {
@@ -25,7 +25,8 @@ export async function GET(request: Request) {
     const alerts = (body.features ?? [])
       .map((f) => f.properties ?? {})
       .filter((p) => typeof p.event === "string" && p.event.length > 0)
-      .map((p) => ({ event: p.event as string, headline: p.headline ?? p.event ?? "", severity: p.severity ?? "Unknown" }));
+      // `ends` is when the hazard ends; NWS leaves it empty for some alerts, and then the alert's expiry stands in.
+      .map((p) => ({ event: p.event as string, headline: p.headline ?? p.event ?? "", severity: p.severity ?? "Unknown", ends: p.ends ?? p.expires ?? null }));
     return Response.json({ alerts });
   } catch {
     return apiError(502, "upstream_error", "The weather service could not be reached");

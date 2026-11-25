@@ -52,7 +52,7 @@ describe("suggestAddresses", () => {
     expect(calls).toHaveLength(0);
   });
 
-  it("adds named places from ArcGIS World after the county's addresses, kept to the Tampa area", async () => {
+  it("adds named places from ArcGIS World after the county's addresses, from anywhere in Florida", async () => {
     mockCounty(
       () => ({ suggestions: [{ text: "13700 Avalon Heights Blvd, Tampa", magicKey: "C1", isCollection: false }] }),
       200,
@@ -67,7 +67,9 @@ describe("suggestAddresses", () => {
     expect(s.map((x) => x.label)).toEqual(["13700 Avalon Heights Blvd, Tampa", "Avalon Heights, Tampa, FL, USA"]);
     const w = new URL(worldCalls[0]);
     expect(`${w.origin}${w.pathname}`).toBe(`${WORLD}/suggest`);
-    expect(w.searchParams.get("searchExtent")).toBeTruthy();
+    // Florida, so a Miami address is found and told about its storm, even though it gets no grade.
+    const [west, south, east, north] = (w.searchParams.get("searchExtent") ?? "").split(",").map(Number);
+    expect(west < -87.5 && east > -80.1 && south < 24.6 && north > 31).toBe(true);
     expect(w.searchParams.get("countryCode")).toBe("USA");
   });
 

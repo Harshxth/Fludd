@@ -115,6 +115,8 @@ We used AI throughout and say so plainly, because the rules require it and becau
 
 Fludd is a screening estimate from a simplified model. It leaves out storm sewers, storm surge, river flooding and groundwater, and is checked against one storm. It is not a FEMA flood determination, and not for insurance, lending or purchase decisions. In a storm, follow Hillsborough County Emergency Management and the National Weather Service. Never drive or walk into floodwater. The app never tells anyone a flooded road is safe.
 
+Outside the area it covers, Fludd gives no grade. Any Florida address still shows the live National Weather Service alerts for that spot, basic safety steps and links to official sources.
+
 ## Run it
 
 ```bash
@@ -129,7 +131,7 @@ Set `NEXT_PUBLIC_DATA_SET=real` to use the real data in `web/public/data/` (the 
 ## Tests
 
 ```bash
-cd web && npm run lint && npm run typecheck && npm test     # 450+ tests
+cd web && npm run lint && npm run typecheck && npm test     # 510+ tests
 cd pipeline && uv run pytest -q                              # 84 tests
 ```
 

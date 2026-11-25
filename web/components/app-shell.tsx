@@ -14,6 +14,7 @@ import { recordContribution } from "@/components/rewards/contributions";
 import { RewardsPanel } from "@/components/rewards/rewards-panel";
 import { AddressSearch } from "@/components/report-card/address-search";
 import { notCoveredText, useCoveredPlaces } from "@/components/report-card/not-covered";
+import { StormHere } from "@/components/report-card/storm-here";
 import { ValidationPanel } from "@/components/report-card/validation-panel";
 import { AfterPanel } from "@/components/stages/after-panel";
 import { BeforePanel } from "@/components/stages/before-panel";
@@ -234,14 +235,17 @@ export function AppShell() {
         </Group>
       )}
       {current?.grade.kind === "outside" && (
-        <Group>
-          <div className="px-4 py-4">
-            <p className="text-headline font-semibold">Not covered yet</p>
-            <p className="mt-1 text-subhead text-label-2">
-              {notCoveredText(current.place.label, covered)}
-            </p>
-          </div>
-        </Group>
+        <>
+          <Group>
+            <div className="px-4 py-4">
+              <p className="text-headline font-semibold">Not covered yet</p>
+              <p className="mt-1 text-subhead text-label-2">
+                {notCoveredText(current.place.label, covered)}
+              </p>
+            </div>
+          </Group>
+          <StormHere position={current.place.position} />
+        </>
       )}
     </>
   );
@@ -302,7 +306,7 @@ export function AppShell() {
           </span>
         )}
         <span className="min-w-0 flex-1">
-          <span className="block text-headline font-semibold">{place ? (ok ? `Flood grade ${letter}` : "Checking this place…") : "Explore Tampa"}</span>
+          <span className="block text-headline font-semibold">{place ? (ok ? `Flood grade ${letter}` : current?.grade.kind === "outside" ? "Not covered yet" : "Checking this place…") : "Explore Tampa"}</span>
           <span className="block truncate text-subhead text-label-2">{place ? place.label.split(",")[0] : "Search a place, or tap any building"}</span>
         </span>
         <WeatherChip position={place?.position ?? USF_AREA} />
